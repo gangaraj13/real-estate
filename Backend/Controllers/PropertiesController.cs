@@ -25,12 +25,10 @@ namespace Backend.Controllers
             [FromQuery] string? type,
             [FromQuery] string? sortBy)
         {
-            // Start with the full set — nothing is executed yet (deferred)
             var query = _context.Properties
                 .Include(p => p.Agent)
                 .AsQueryable();
 
-            // --- Filtering ---
             if (minPrice.HasValue)
                 query = query.Where(p => p.Price >= minPrice.Value);
 
@@ -49,10 +47,9 @@ namespace Backend.Controllers
                 "price"     => query.OrderBy(p => p.Price),
                 "price_desc"=> query.OrderByDescending(p => p.Price),
                 "newest"    => query.OrderByDescending(p => p.ListedAt),
-                _           => query.OrderBy(p => p.Id)   // default
+                _           => query.OrderBy(p => p.Id)
             };
 
-            // --- Projection (only send what frontend needs) ---
             var results = await query.Select(p => new
             {
                 p.Id,
@@ -66,7 +63,7 @@ namespace Backend.Controllers
                 p.IsAvailable,
                 p.ListedAt,
                 Agent = new { p.Agent!.Name, p.Agent.Email, p.Agent.Phone }
-            }).ToListAsync();   // async — query runs HERE
+            }).ToListAsync();  
 
             return Ok(results);
         }
