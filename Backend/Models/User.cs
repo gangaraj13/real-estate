@@ -1,32 +1,31 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Backend.Models
 {
-    public class Agent
+    public class User
     {
         public int Id { get; set; }
 
         [Required]
         [MaxLength(100)]
-        public string Name { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(150)]
         public string Email { get; set; } = string.Empty;
 
-        [Required]
         [MaxLength(20)]
-        public string Phone { get; set; } = string.Empty;
+        public string? Phone { get; set; }
 
         [Required]
-        [MaxLength(150)]
-        public string Agency { get; set; } = string.Empty;
+        [MaxLength(300)]
+        public string PasswordHash { get; set; } = string.Empty;
 
-        [MaxLength(500)]
-        public string? Bio { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
-        public ICollection<Property> Properties { get; set; } = new List<Property>();
+        public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
         public ICollection<Inquiry> Inquiries { get; set; } = new List<Inquiry>();
     }
 }
