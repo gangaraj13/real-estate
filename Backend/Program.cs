@@ -1,25 +1,43 @@
+using Backend.Data;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddRazorPages();
+// ── Database ──────────────────────────────────────────
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// ── API + Swagger ─────────────────────────────────────
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// ── CORS for React ────────────────────────────────────
+builder.Services.AddCors(options =>
+    options.AddPolicy("ReactApp", policy =>
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod()));
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+// ── Middleware ────────────────────────────────────────
+if (app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
+app.UseCors("ReactApp");
 app.UseHttpsRedirection();
-app.UseStaticFiles();
-
-app.UseRouting();
-
 app.UseAuthorization();
+app.MapControllers();
 
-app.MapRazorPages();
+// ── DB Test Endpoint ──────────────────────────────────
+app.MapGet("/test-db", async (AppDbContext db) =>
+{
+    var count = await db.Properties.CountAsync();
+    return Results.Ok(new { message = "DB Connected!", propertyCount = count });
+});
 
 app.Run();
